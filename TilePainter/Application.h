@@ -34,6 +34,7 @@ private:
 	bool isRunning;
 
 	Button saveB, loadB, gridB, exportMapB, exportImageB;
+	bool exportImage = false;
 	Button addLayer;
 	Button hideButton;
 	Button deleteButton;

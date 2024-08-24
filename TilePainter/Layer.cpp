@@ -1,7 +1,5 @@
 #include "Layer.h"
 
-int Layer::id = 0;
-
 Layer::Layer(std::string name, SDL_Renderer* ren, SDL_Event* ev, int x, int y, int rows, int columns, int Bwidth, int Bheight) :
 	m_name(name), m_ren(ren), m_ev(ev), m_x(x), m_y(y), m_rows(rows), m_colums(columns), m_blockWidth(Bwidth), m_blockHeight(Bheight), m_2Dblocks(rows, columns) {
 	m_textureLoaded = false;
@@ -10,7 +8,6 @@ Layer::Layer(std::string name, SDL_Renderer* ren, SDL_Event* ev, int x, int y, i
 	m_prevColums = columns;
 	m_isHidden = false;
 	m_tex = nullptr;
-	m_surface = nullptr;
 
 	SDL_Rect rect = {x, y, Bwidth, Bheight};
 
@@ -27,7 +24,7 @@ Layer::Layer(std::string name, SDL_Renderer* ren, SDL_Event* ev, int x, int y, i
 	Reposition();
 }
 Layer::Layer(const Layer& obj) :
-	m_name(obj.m_name), m_ren(obj.m_ren), m_tex(obj.m_tex), m_surface(obj.m_surface), m_ev(obj.m_ev), m_x(obj.m_x), m_y(obj.m_y), m_rows(obj.m_rows), m_colums(obj.m_colums), m_blockWidth(obj.m_blockWidth), m_blockHeight(obj.m_blockHeight), m_2Dblocks(obj.m_2Dblocks), m_isHidden(obj.m_isHidden) {
+	m_name(obj.m_name), m_ren(obj.m_ren), m_tex(obj.m_tex), m_ev(obj.m_ev), m_x(obj.m_x), m_y(obj.m_y), m_rows(obj.m_rows), m_colums(obj.m_colums), m_blockWidth(obj.m_blockWidth), m_blockHeight(obj.m_blockHeight), m_2Dblocks(obj.m_2Dblocks), m_isHidden(obj.m_isHidden) {
 	m_textureLoaded = false;
 	m_gridColor = { 255, 255,0,0 };
 	m_prevRows = m_rows;
@@ -45,7 +42,6 @@ Layer& Layer::operator=(const Layer& obj) {
 	m_name = obj.m_name;
 	m_ren = obj.m_ren;
 	m_tex = obj.m_tex;
-	m_surface = obj.m_surface;
 	m_ev = obj.m_ev;
 	m_x = obj.m_x;
 	m_y = obj.m_y;
@@ -72,8 +68,6 @@ Layer::~Layer() {
 	m_ren = nullptr;
 	m_ev = nullptr;
 	m_tex = nullptr;
-	if (m_surface != nullptr)
-		SDL_FreeSurface(m_surface);
 }
 void Layer::Render() {
 	for (int i = 0; i < m_rows; i++) {
@@ -335,38 +329,23 @@ Block& Layer::GetBlock(int i, int j) {
 		}
 	}
 }
-SDL_Surface* Layer::GetSurface(SDL_Window* window, SDL_Rect* dest) {
-	id++;
-	if (window != nullptr && dest!=nullptr) {
-		SDL_Surface* winSurf = nullptr;
-		winSurf = SDL_GetWindowSurface(window);
-		if (winSurf != nullptr) {
-			SDL_Rect layer;
-			layer.x = m_x;
-			layer.y = m_y;
-			layer.w = m_colums * m_blockWidth;
-			layer.h = m_rows * m_blockHeight;
-			LOG("x: "); LOG(layer.x); LOG(" y: "); LOG(layer.y); LOG(" w: "); LOG(layer.w); LOG(" h: "); LOGln(layer.w);
+SDL_Surface* Layer::GetSurface(SDL_Window* window) {
+	if (window != nullptr) {
+		SDL_Rect layer;
+		layer.x = m_x;
+		layer.y = m_y;
+		layer.w = m_colums * m_blockWidth;
+		layer.h = m_rows * m_blockHeight;
+		LOG("x: "); LOG(layer.x); LOG(" y: "); LOG(layer.y); LOG(" w: "); LOG(layer.w); LOG(" h: "); LOGln(layer.w);
 
-			if (m_surface != nullptr) {
-				SDL_FreeSurface(m_surface);
-				m_surface = nullptr;
-			}
-			m_surface = SDL_CreateRGBSurface(0, layer.w, layer.h, winSurf->format->BitsPerPixel,
-				winSurf->format->Rmask, winSurf->format->Gmask,
-				winSurf->format->Bmask, winSurf->format->Amask);
+		SDL_Surface* surface = SDL_CreateRGBSurfaceWithFormat(0, layer.w, layer.h, 32, SDL_PIXELFORMAT_ARGB8888);
 	
-			if (SDL_RenderReadPixels(m_ren, &layer, m_surface->format->format, m_surface->pixels, m_surface->pitch) < 0) {
-				SDL_FreeSurface(m_surface);
-				m_surface = nullptr;
-				LOGln("SURFACE IS NULL!");
-				return nullptr;
-			}
-			std::string str = "Files/Images/surface_" + std::to_string(id) + ".jpg";
-			id++;
-			IMG_SaveJPG(m_surface, str.c_str(), 50);
-			return m_surface;
+		if (SDL_RenderReadPixels(m_ren, &layer, surface->format->format, surface->pixels, surface->pitch) < 0) {
+			SDL_FreeSurface(surface);
+			LOGln("SURFACE IS NULL!");
+			return nullptr;
 		}
+		return surface;
 	}
 	return nullptr;
 }

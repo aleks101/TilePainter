@@ -110,21 +110,30 @@ void Grid::Load() {
 }
 SDL_Surface* Grid::GetLayerSurface(SDL_Window* window) {
 	if (!m_layers.empty()) {
-		SDL_Rect dest = { 0, 0, 1000, 1000 };
-		SDL_Surface* final = SDL_CreateRGBSurface(0, dest.w, dest.h, 32,
-			0x00FF0000, 0x0000FF00, 0x000000FF, 0xFF000000);
+		SDL_Surface* surface = m_layers[0].GetSurface(window);
+
+		SDL_Rect dest = { 0, 0, surface->w, surface->h };
+		SDL_Surface* final = nullptr; 
+		final = SDL_CreateRGBSurfaceWithFormat(0, dest.w, dest.h, 32, SDL_PIXELFORMAT_ARGB8888);
 
 		if (final == nullptr) {
 			LOGln("SURFACE CREATION FAILED");
 			return nullptr;
 		}
 		for (int i = 0; i < m_layers.size(); i++) {
-			SDL_Surface* surface = m_layers[i].GetSurface(window, &dest);
-			if (surface != nullptr)
-				SDL_BlitSurface(surface, nullptr, final, nullptr);
-			else
+			SDL_Surface* surface = m_layers[i].GetSurface(window);
+			if (surface != nullptr) {
+				if (SDL_BlitSurface(surface, nullptr, final, &dest) < 0) {
+					LOGln("BLITING FAILED");
+					SDL_FreeSurface(surface);
+					return nullptr;
+				}
+			}
+			else {
 				return nullptr;
+			}
 		}		
+		LOGln("BLITING ALL LAYERS SUCCESSFUL");
 		return final;
 	}
 	return nullptr;

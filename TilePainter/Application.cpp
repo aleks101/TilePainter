@@ -9,7 +9,7 @@ Application::Application() {
 	ShowWindow(GetConsoleWindow(), SW_SHOW);
 	app = App::GetInstance();
 	app->Init("Tile painter", 1280, 720);
-
+	IMG_Init(0);
 	Assets::AddFont("Files/Fonts/8-bit-operator/8bitOperatorPlus8-Regular.ttf", 25);
 	Assets::AddSound("Files/Audio/click.mp3");
 	Assets::AddTexture(app->GetRenderer(), "Files/Images/tileset.png", IMG_INIT_PNG);
@@ -160,16 +160,14 @@ void Application::MainLoop() {
 	while (isRunning) {
 		SDL_SetRenderTarget(app->GetRenderer(), sceneTexture);
 		SDL_SetRenderDrawColor(app->GetRenderer(), 0, 0, 0, 0);
-		//SDL_SetRenderDrawColor(app->GetRenderer(), 0, 0, 0, 255);
 		SDL_RenderClear(app->GetRenderer());
 
 		GameLoop();
+
 		//RENDER
-
-		SDL_SetRenderTarget(app->GetRenderer(), NULL);
+		SDL_SetRenderTarget(app->GetRenderer(), nullptr);
 		SDL_RenderClear(app->GetRenderer());
-		SDL_RenderCopy(app->GetRenderer(), sceneTexture, NULL, NULL);
-
+		SDL_RenderCopy(app->GetRenderer(), sceneTexture, nullptr, nullptr);
 		app->Render();
 	}
 }
@@ -213,7 +211,7 @@ void Application::GameLoop() {
 		}
 		if (exportImageB.CheckMouseClick()) {
 			if (!layerList.empty())
-				ExportImage();
+				exportImage = true;
 		}
 		if (gridB.CheckMouseClick()) {
 			gridSettingShown = !gridSettingShown;
@@ -258,6 +256,14 @@ void Application::GameLoop() {
 					layerList.erase(layerList.begin() + selectedList);
 					grid->RemoveLayer(selectedList);
 					selectedList = layerList.size() - 1;
+
+					Vec2 pos(0, 700);
+					for (int i = 0; i < layerList.size(); i++) {
+						grid->GetLayers()[i].m_name = "Layer" + std::to_string(i + 1);
+						layerList[i].first.SetDestPos(pos);
+						layerList[i].first.ChangeText(grid->GetLayers()[i].m_name);
+						pos.y -= 20;
+					}
 					FetchData();
 				}
 				else {
@@ -411,6 +417,10 @@ void Application::GameLoop() {
 	}
 	//UPDATE
 	grid->Update();
+	if (exportImage) {
+		ExportImage();
+		exportImage = false;
+	}
 
 	saveB.Update();
 	loadB.Update();
@@ -460,6 +470,7 @@ void Application::GameLoop() {
 		SDL_RenderDrawRect(app->GetRenderer(), layerList[selectedList].first.GetDest());
 		SDL_SetRenderDrawColor(app->GetRenderer(), 0, 0, 0, 0);
 	}
+
 }
 void Application::FetchData() {
 	if (!layerList.empty()) {
@@ -617,7 +628,7 @@ void Application::ExportMap() {
 	}
 }
 void Application::ExportImage() {
-	/*if (!grid->m_layers.empty()) {
+	if (!grid->m_layers.empty()) {
 		using namespace std;
 
 		std::wstring filePath;
@@ -626,23 +637,11 @@ void Application::ExportImage() {
 		HRESULT hr = SelectFolderDialog(NULL, filePath);
 		if (SUCCEEDED(hr)) {
 			if (!filePath.empty()) {
-
 				std::string str(filePath.begin(), filePath.end());
-
 				string name = str + "/Image.jpg";
 
-				SDL_SetRenderTarget(app->GetRenderer(), sceneTexture);
-				//SDL_RenderPresent(app->GetRenderer());
-				SDL_SetRenderDrawColor(app->GetRenderer(), 255, 0, 0, 0);
-				SDL_RenderPresent(app->GetRenderer());
-
 				SDL_Surface* image = nullptr;
-				//int w, h;
-				//SDL_QueryTexture(SDL_GetRenderTarget(app->GetRenderer()), NULL, NULL, &w, &h);
-				image = SDL_CreateRGBSurfaceWithFormat(0, 1280, 720, 32, SDL_PIXELFORMAT_ARGB8888);
-				SDL_RenderReadPixels(app->GetRenderer(), NULL, image->format->format, image->pixels, image->pitch);
-
-				//image = grid->GetLayerSurface(app->GetWindow());
+				image = grid->GetLayerSurface(app->GetWindow());
 
 				if (image != nullptr) {
 					IMG_SaveJPG(image, name.c_str(), 50);
@@ -661,7 +660,6 @@ void Application::ExportImage() {
 			wprintf(L"File selection was canceled or failed.\n");
 		}
 	}
-	*/
 }
 void Application::LoadTileset() {
 	std::wstring filePath;

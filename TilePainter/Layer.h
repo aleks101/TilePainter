@@ -101,7 +101,7 @@ public:
 	SDL_Texture* GetTexture() {
 		return m_tex;
 	}
-	SDL_Surface* GetSurface(SDL_Window* window, SDL_Rect* dest);
+	SDL_Surface* GetSurface(SDL_Window* window);
 
 	std::streampos Load(std::string folderPath, std::streampos pos);
 	void Save(std::string folderPath);
@@ -115,7 +115,6 @@ private:
 	SDL_Renderer* m_ren;
 	SDL_Event* m_ev;
 	SDL_Texture* m_tex;
-	SDL_Surface* m_surface;
 
 	Box<Block> m_2Dblocks;
 	SDL_Rect m_src;
@@ -129,6 +128,4 @@ private:
 	int m_blockWidth, m_blockHeight;
 
 	bool m_textureLoaded;
-
-	static int id;
 };
