@@ -4,9 +4,16 @@
 #include <shobjidl.h> 
 #include <string>
 #include <locale>
+#ifdef _DEBUG
+#define SHOWCONSOLE ShowWindow(GetConsoleWindow(), SW_SHOW);
+#endif // _DEBUG
+#ifdef NDEBUG
+#define SHOWCONSOLE ShowWindow(GetConsoleWindow(), SW_HIDE);
+#endif
+
 
 Application::Application() {
-	ShowWindow(GetConsoleWindow(), SW_SHOW);
+	SHOWCONSOLE;
 	app = App::GetInstance();
 	app->Init("Tile painter", 1280, 720);
 	IMG_Init(0);
@@ -252,7 +259,6 @@ void Application::GameLoop() {
 		if (deleteButton.CheckMouseClick()) {
 			if (!layerList.empty()) {
 				if (selectedList >= 0 && selectedList < layerList.size()) {
-					LOGln("DELETING ELEMENT AT INDEX " + std::to_string(selectedList));
 					layerList.erase(layerList.begin() + selectedList);
 					grid->RemoveLayer(selectedList);
 					selectedList = layerList.size() - 1;
@@ -267,7 +273,6 @@ void Application::GameLoop() {
 					FetchData();
 				}
 				else {
-					LOGln("Invalid selectedList index");
 				}
 			}
 		}
@@ -646,10 +651,8 @@ void Application::ExportImage() {
 				if (image != nullptr) {
 					IMG_SaveJPG(image, name.c_str(), 50);
 					SDL_FreeSurface(image);
-					LOGln("IMAGE EXPORTED");
 				}
 				else {
-					LOGln("MAJOR FAIL");
 				}
 			}
 			else {

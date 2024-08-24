@@ -336,13 +336,11 @@ SDL_Surface* Layer::GetSurface(SDL_Window* window) {
 		layer.y = m_y;
 		layer.w = m_colums * m_blockWidth;
 		layer.h = m_rows * m_blockHeight;
-		LOG("x: "); LOG(layer.x); LOG(" y: "); LOG(layer.y); LOG(" w: "); LOG(layer.w); LOG(" h: "); LOGln(layer.w);
 
 		SDL_Surface* surface = SDL_CreateRGBSurfaceWithFormat(0, layer.w, layer.h, 32, SDL_PIXELFORMAT_ARGB8888);
 	
 		if (SDL_RenderReadPixels(m_ren, &layer, surface->format->format, surface->pixels, surface->pitch) < 0) {
 			SDL_FreeSurface(surface);
-			LOGln("SURFACE IS NULL!");
 			return nullptr;
 		}
 		return surface;
