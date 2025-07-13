@@ -1,0 +1,1 @@
+target_include_directories(TilePainter PUBLIC ${CMAKE_CURRENT_SOURCE_DIR})
